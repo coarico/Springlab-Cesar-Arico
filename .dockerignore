@@ -1,0 +1,13 @@
+.git
+.gitignore
+.gradle
+build
+gradle
+gradlew
+gradlew.bat
+*.iml
+.idea
+out
+*.log
+*.jar
+!build/libs/*.jar
