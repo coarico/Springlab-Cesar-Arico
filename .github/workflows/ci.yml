@@ -1,0 +1,66 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  APP_VERSION: ${{ github.sha }}
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+        
+      - name: Update version in application.yml
+        run: |
+          sed -i "s/version:.*/version: ${{ env.APP_VERSION }}/" src/main/resources/application.yml
+          
+      - name: Build with Gradle
+        run: ./gradlew clean build
+        
+      - name: Run tests
+        run: ./gradlew test
+        
+  deploy:
+    needs: build-and-test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Render deploy
+        id: deploy
+        run: |
+          set +e
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" -X POST \
+            "${{ secrets.RENDER_DEPLOY_HOOK }}" \
+            -H "Content-Type: application/json" \
+            -d '{"commit": "${{ github.sha }}", "version": "${{ env.APP_VERSION }}"}')
+          
+          if [ "$RESPONSE" -eq 200 ] || [ "$RESPONSE" -eq 201 ]; then
+            echo "Deployment triggered successfully"
+            echo "response_code=$RESPONSE" >> $GITHUB_OUTPUT
+          else
+            echo "Failed to trigger deployment. Status code: $RESPONSE"
+            echo "response_code=$RESPONSE" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+      
+      - name: Verify deployment status
+        if: steps.deploy.outcome == 'failure'
+        run: |
+          echo "Deployment failed. Please check Render dashboard for details."
+          echo "Note: Automatic rollback requires manual intervention."
+          exit 1
