@@ -5,6 +5,7 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
 
 env:
   APP_VERSION: ${{ github.sha }}
@@ -42,19 +43,24 @@ jobs:
       - name: Trigger Render deploy
         id: deploy
         run: |
+          set +e
           RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" -X POST \
             "${{ secrets.RENDER_DEPLOY_HOOK }}" \
             -H "Content-Type: application/json" \
             -d '{"commit": "${{ github.sha }}", "version": "${{ env.APP_VERSION }}"}')
-          echo "response_code=$RESPONSE" >> $GITHUB_OUTPUT
+          
+          if [ "$RESPONSE" -eq 200 ] || [ "$RESPONSE" -eq 201 ]; then
+            echo "Deployment triggered successfully"
+            echo "response_code=$RESPONSE" >> $GITHUB_OUTPUT
+          else
+            echo "Failed to trigger deployment. Status code: $RESPONSE"
+            echo "response_code=$RESPONSE" >> $GITHUB_OUTPUT
+            exit 1
+          fi
       
-      - name: Verify deployment
-        if: steps.deploy.outputs.responseCode != '200'
+      - name: Verify deployment status
+        if: steps.deploy.outcome == 'failure'
         run: |
-          echo "Deployment failed, triggering rollback"
-          curl -X POST \
-            -H "Accept: application/vnd.github.v3+json" \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            https://api.github.com/repos/${{ github.repository }}/dispatches \
-            -d '{"event_type":"rollback_requested"}'
+          echo "Deployment failed. Please check Render dashboard for details."
+          echo "Note: Automatic rollback requires manual intervention."
           exit 1
