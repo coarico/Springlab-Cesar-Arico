@@ -1,5 +1,5 @@
 # Usa la imagen de OpenJDK 17
-FROM openjdk:17-jdk-slim
+FROM eclipse-temurin:17-jdk-jammy
 
 # Directorio de trabajo
 WORKDIR /app
