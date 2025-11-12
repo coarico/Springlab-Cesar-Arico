@@ -41,11 +41,11 @@ jobs:
     steps:
       - name: Trigger Render deploy
         id: deploy
-        uses: fjogeleit/[email protected]
+        uses: fjogeleit/curl-webhook-action@v1
         with:
           webhook: ${{ secrets.RENDER_DEPLOY_HOOK }}
           data: '{"commit": "${{ github.sha }}", "version": "${{ env.APP_VERSION }}"}'
-          
+      
       - name: Verify deployment
         if: steps.deploy.outputs.responseCode != '200'
         run: |

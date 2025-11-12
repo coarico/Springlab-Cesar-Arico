@@ -1,9 +1,9 @@
-name: Rollback to last successful deploy
+name: Rollback to Last Successful Deploy
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:  # Permite ejecución manual
   repository_dispatch:
-    types: [rollback_requested]
+    types: [rollback_requested]  # Se dispara desde el CI en caso de fallo
 
 jobs:
   rollback:
@@ -12,16 +12,18 @@ jobs:
       - name: Get last successful deploy
         id: last_deploy
         run: |
-          RESPONSE=$(curl -s -X GET "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys?status=done&limit=1" \
+          RESPONSE=$(curl -s -X GET "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys?status=done&limit=10" \
             -H "accept: application/json" \
             -H "authorization: Bearer ${{ secrets.RENDER_API_KEY }}")
-          echo "response=$RESPONSE" >> $GITHUB_OUTPUT
-          DEPLOY_ID=$(echo $RESPONSE | jq -r '.[0].id')
+          
+          # Buscar el último despliegue exitoso
+          DEPLOY_ID=$(echo "$RESPONSE" | jq -r '.[] | select(.status == "live") | .id' | head -n 1)
+          echo "Deploying version: $DEPLOY_ID"
           echo "deploy_id=$DEPLOY_ID" >> $GITHUB_OUTPUT
-
-      - name: Rollback to last successful deploy
+          
+      - name: Trigger rollback
+        if: steps.last_deploy.outputs.deploy_id != ''
         run: |
-          curl -X POST \
-            "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys/${{ steps.last_deploy.outputs.deploy_id }}/retry" \
+          curl -X POST "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys/${{ steps.last_deploy.outputs.deploy_id }}/retry" \
             -H "accept: application/json" \
             -H "authorization: Bearer ${{ secrets.RENDER_API_KEY }}"
