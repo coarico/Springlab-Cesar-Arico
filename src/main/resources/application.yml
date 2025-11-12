@@ -1,0 +1,34 @@
+app:
+  version: ${APP_VERSION:local}
+  name: springlab-cesar-arico
+
+spring:
+  #Configuracion del datasource
+  datasource:
+    url: jdbc:mysql://localhost:3306/spring_lab?useSSL=false&serverTimezone=UTC
+    username: root
+    password:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  #Configuracion de JPA/Hibernate
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  #Configuracion de Jackson
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
+  #Configurar DevTools
+  devtools:
+    restart:
+      enabled: true
+
+#Configurar el servidor embebido (Tomcat)
+server:
+  port: 8080
