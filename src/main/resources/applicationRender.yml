@@ -1,0 +1,34 @@
+app:
+  version: ${APP_VERSION:local}
+  name: springlab-Alan-herrera
+
+server:
+  port: ${PORT:10000}
+
+spring:
+  #Configuracion del datasource (H2 en memoria para Render)
+  datasource:
+    url: jdbc:h2:mem:testdb
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  #Configuracion de H2 Console
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  #Configuracion de JPA/Hibernate
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+
+  #Configuracion de Jackson
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false

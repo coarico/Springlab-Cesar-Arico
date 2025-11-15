@@ -1,0 +1,19 @@
+# Archivos de control de versiones
+.git
+.gitignore
+
+# Configuración del IDE
+*.iml
+.idea
+out
+
+# Logs
+*.log
+
+# Excluir builds anteriores pero mantener wrapper de Gradle
+.gradle
+build
+!gradle/wrapper/
+*.jar
+!gradle/wrapper/*.jar
+!build/libs/*.jar

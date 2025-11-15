@@ -1,0 +1,177 @@
+{
+	"info": {
+		"_postman_id": "herrera-alan-lab2",
+		"name": "Spring Lab - Render Deployment",
+		"description": "API REST para gestión de estudiantes desplegada en Render",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "springlab"
+	},
+	"item": [
+		{
+			"name": "Students",
+			"item": [
+				{
+					"name": "Create Student",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"fullName\": \"Alan Herrera\",\n  \"email\": \"avherrera3@espe.edu.ec\",\n  \"birthDate\": \"2000-05-15\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/students",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"students"
+							]
+						},
+						"description": "Crea un nuevo estudiante. Requiere fullName (3-120 caracteres), email válido (max 120 caracteres) y birthDate opcional."
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Students",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/students",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"students"
+							]
+						},
+						"description": "Obtiene la lista completa de estudiantes registrados."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Student by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/students/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"students",
+								"1"
+							]
+						},
+						"description": "Obtiene los datos de un estudiante específico por su ID."
+					},
+					"response": []
+				},
+				{
+					"name": "Deactivate Student",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/students/1/deactivate",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"students",
+								"1",
+								"deactivate"
+							]
+						},
+						"description": "Desactiva un estudiante (soft delete). El estudiante permanece en la base de datos pero marcado como inactivo."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Health & Info",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								""
+							]
+						},
+						"description": "Verifica que el servicio esté funcionando correctamente."
+					},
+					"response": []
+				},
+				{
+					"name": "H2 Console (Development)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/h2-console",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"h2-console"
+							]
+						},
+						"description": "Acceso a la consola H2 para visualizar la base de datos en memoria (solo disponible en modo desarrollo/demo)."
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "https://herreraalan-lab2.onrender.com",
+			"type": "string"
+		},
+		{
+			"key": "student_id",
+			"value": "1",
+			"type": "string"
+		}
+	]
+}

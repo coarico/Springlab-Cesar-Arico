@@ -1,0 +1,27 @@
+name: Rollback to last successful deploy
+
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [rollback_requested]
+
+jobs:
+  rollback:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get last successful deploy
+        id: last_deploy
+        run: |
+          RESPONSE=$(curl -s -X GET "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys?status=done&limit=1" \
+            -H "accept: application/json" \
+            -H "authorization: Bearer ${{ secrets.RENDER_API_KEY }}")
+          echo "response=$RESPONSE" >> $GITHUB_OUTPUT
+          DEPLOY_ID=$(echo $RESPONSE | jq -r '.[0].id')
+          echo "deploy_id=$DEPLOY_ID" >> $GITHUB_OUTPUT
+
+      - name: Rollback to last successful deploy
+        run: |
+          curl -X POST \
+            "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys/${{ steps.last_deploy.outputs.deploy_id }}/retry" \
+            -H "accept: application/json" \
+            -H "authorization: Bearer ${{ secrets.RENDER_API_KEY }}"

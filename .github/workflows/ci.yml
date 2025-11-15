@@ -1,0 +1,59 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  APP_VERSION: ${{ github.sha }}
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+        
+      - name: Update version in application.yml
+        run: |
+          sed -i "s/version:.*/version: ${{ env.APP_VERSION }}/" src/main/resources/application.yml
+          
+      - name: Build with Gradle
+        run: ./gradlew clean build
+        
+      - name: Run tests
+        run: ./gradlew test
+        
+  deploy:
+    needs: build-and-test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Render deploy (via webhook)
+        id: deploy
+        run: |
+          response=$(curl -s -o /dev/null -w "%{http_code}" -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}" \
+            -H "Content-Type: application/json" \
+            -d '{"commit":"${{ github.sha }}","version":"${{ env.APP_VERSION }}"}')
+          echo "response=$response" >> $GITHUB_OUTPUT
+          
+      - name: Verify deployment
+        if: steps.deploy.outputs.response != '200'
+        run: |
+          echo "Deployment failed, triggering rollback"
+          curl -X POST \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            https://api.github.com/repos/${{ github.repository }}/dispatches \
+            -d '{"event_type":"rollback_requested"}'
+          exit 1
