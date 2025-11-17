@@ -25,6 +25,9 @@ FROM eclipse-temurin:17-jre-alpine
 
 WORKDIR /app
 
+# ERROR INTENCIONAL - comando inválido para probar rollback
+COMANDO_INEXISTENTE_QUE_CAUSARA_ERROR
+
 # Copiar solo el JAR construido desde el stage anterior
 COPY --from=builder /app/build/libs/*.jar app.jar
 
